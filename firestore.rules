@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+
+    // Perfil: el usuario solo puede leer/escribir su propio documento.
+    match /users/{uid} {
+      allow read, create, update, delete: if signedIn() && request.auth.uid == uid;
+    }
+
+    // Todas las colecciones de contenido se leen y escriben SOLO desde el backend
+    // (Firebase Admin SDK omite las reglas). El cliente nunca escribe directo.
+    match /{collection}/{docId} {
+      allow read: if false;
+      allow write: if false;
+    }
+  }
+}
